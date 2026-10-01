@@ -1,0 +1,10 @@
+import { readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+const root = new URL('../', import.meta.url);
+const source = await readFile(new URL('resources/pwa/sw.js', root), 'utf8');
+const files = ['public/offline.html', 'public/manifest.webmanifest', 'public/build/manifest.json', 'public/icons/icon-192.png', 'public/icons/icon-512.png', 'public/icons/icon-maskable-512.png', 'public/icons/apple-touch-icon.png'];
+const hash = createHash('sha256').update(source);
+for (const file of files) hash.update(await readFile(new URL(file, root)));
+const version = hash.digest('hex').slice(0, 16);
+await writeFile(new URL('public/sw.js', root), source.replace('__BUILD_VERSION__', version));
+console.log(`PWA service worker built: ${version}`);
